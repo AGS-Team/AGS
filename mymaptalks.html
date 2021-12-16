@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AGS Map Inside</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+    <!-- OSM Buildings 3D -->
+    <link href="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.css" rel="stylesheet">
+    <script src="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.js"></script>
+    <script src="https://cdn.osmbuildings.org/classic/0.2.2b/OSMBuildings-Leaflet.js"></script>
+
+    <script
+        src="https://cesium.com/ion/stories/viewer/ThirdParty/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="https://cesium.com/ion/stories/viewer/ThirdParty/pep.js"></script>
+    <script src="https://cesium.com/ion/ThirdParty/@cesiumgs/cesium-analytics/Cesium.js"></script>
+    <script defer src="https://cesium.com/ion/stories/viewer/index.js"></script>
+
+
+</head>
+<link rel="stylesheet" crossorigin="anonymous"
+    href="https://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cHM6Ly9sZWFmbGV0anMuY29tL2V4YW1wbGVzL3F1aWNrLXN0YXJ0L2V4YW1wbGUtYmFzaWMuaHRtbA" />
+
+
+<style>
+    html,
+    body {
+        height: 880px;
+        margin: 15;
+        /* background: #400446; */
+        background: linear-gradient(to left, lime 28px, red 77%, cyan);
+        color: #285585;
+        font-family: fantasy;
+    }
+
+    a {
+        color: rgb(252, 250, 251);
+    }
+
+    a:hover {
+        color: #f50ae1;
+    }
+
+    img:hover {
+        box-shadow: 3px 3px red, -0.3em 0 .4em olive;
+    }
+
+    /* img:logo{
+        border-radius: 30px;
+    } */
+
+    h1 {
+        color: #ced847;
+        margin: 5px 5px 5px 0;
+        /* margin: 1em 0 0 0; */
+        text-shadow: 2px 2px 2px black, 0 0 25px blue, 0 0 5px darkblue;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 900;
+
+    }
+
+    h2 {
+        color: #f31225;
+    }
+
+    h3 {
+        color: #ffffff;
+        background: rgb(34, 31, 238);
+        border: 3px solid #cbf50e;
+        border-radius: 30%;
+        /* left: 5;
+        right: 5; */
+        margin: 10px auto;
+        text-align: center;
+        padding: 3px;
+    }
+
+    h3:hover {
+        text-decoration: none;
+        color: #e808f0;
+        background: rgb(112, 250, 32);
+    }
+
+    #map {
+        width: 100%;
+        height: 860px;
+        border: 3px solid rgb(71, 6, 6);
+        border-radius: 10px;
+    }
+
+    @import url(../templates/bucket.css);
+
+    #toolbar {
+        background: rgba(42, 42, 42, 0.8);
+        padding: 4px;
+        border-radius: 4px;
+    }
+
+    #toolbar input {
+        vertical-align: middle;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+
+    #toolbar table tr {
+        transform: translateY(0);
+        transition: transform 0.4s ease-out;
+    }
+
+    #toolbar table tr.up {
+        transform: translateY(33px);
+        transition: none;
+    }
+
+    #toolbar table tr.down {
+        transform: translateY(-33px);
+        transition: none;
+    }
+</style>
+
+
+
+</head>
+
+<body>
+    <!-- <div id="map"></div> -->
+    <div id="cesiumContainer" class="fullSize"></div>
+    <div id="loadingOverlay">
+        <!-- <h1>Loading...</h1> -->
+    </div>
+    <div id="toolbar"></div>
+
+        <!-- <table>
+            <tbody data-bind="foreach: layers">
+                <tr data-bind="css: { up: $parent.upLayer === $data, down: $parent.downLayer === $data }">
+                    <td><input type="checkbox" data-bind="checked: show"></td>
+                    <td>
+                        <span data-bind="text: name, visible: !$parent.isSelectableLayer($data)"></span>
+                        <select
+                            data-bind="visible: $parent.isSelectableLayer($data), options: $parent.baseLayers, optionsText: 'name', value: $parent.selectedLayer"></select>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="1" step="0.01" data-bind="value: alpha, valueUpdate: 'input'">
+                    </td>
+                    <td>
+                        <button type="button" class="cesium-button"
+                            data-bind="click: function() { $parent.raise($data, $index()); }, visible: $parent.canRaise($index())">
+                            ▲
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="cesium-button"
+                            data-bind="click: function() { $parent.lower($data, $index()); }, visible: $parent.canLower($index())">
+                            ▼
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table> -->
+    </div>
+
+    <script>
+
+        // 3D CesiumJS
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0NmY4ZWQyYi0yYTk4LTRmNDUtYTI3MS03NTYwZjFjYzkxNzYiLCJpZCI6NzY0MzAsImlhdCI6MTYzOTQ1MDIxN30.KQ6vrN8cTVNFYG1r9Clxs_6Drvl5o141yMbaKel6pD4';
+
+        // Initialize the Cesium Viewer in the HTML element with the `cesiumContainer` ID.
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: Cesium.createWorldTerrain({
+                url: Cesium.IonResource.fromAssetId(1),  // Cesium World Terrain
+
+        })
+        });
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+
+
+        tileset.readyPromise
+        .then(function () {
+            viewer.zoomTo(tileset);
+
+            // Apply the default style if it exists
+            var extras = tileset.asset.extras;
+            if (
+            Cesium.defined(extras) &&
+            Cesium.defined(extras.ion) &&
+            Cesium.defined(extras.ion.defaultStyle)
+            ) {
+            tileset.style = new Cesium.Cesium3DTileStyle(extras.ion.defaultStyle);
+            }
+        })
+        .otherwise(function (error) {
+            console.log(error);
+        });
+
+
+        // // Add Cesium OSM Buildings, a global 3D buildings layer.
+        const buildingTileset = viewer.scene.primitives.add(Cesium.createOsmBuildings());
+        // Fly the camera to Yangon at the given longitude, latitude, and height.
+        viewer.camera.flyTo({
+        destination : Cesium.Cartesian3.fromDegrees(98.9, 16.46, 400),  // for longitude, latitude, and height respectively:
+        orientation : {
+            heading : Cesium.Math.toRadians(0.0),  // relative to East.
+            pitch : Cesium.Math.toRadians(-15.0),  // relative to North.
+            roll:0.0,                               // relative to Up.
+        }
+        });
+                // url: Cesium.IonResource.fromAssetId(1),  // Cesium World Terrain
+                // url: Cesium.IonResource.fromAssetId(2),    // Bing Maps Aerial 
+                // url: Cesium.IonResource.fromAssetId(3),    // Bing Maps Aerial with Labels
+                // url: Cesium.IonResource.fromAssetId(4),     // Bing Maps Road
+                // url: Cesium.IonResource.fromAssetId(96188),  // Cesium OSM Buildings
+                // url: Cesium.IonResource.fromAssetId(3954),  //Sentinel-2
+                // url: Cesium.IonResource.fromAssetId(3813),  // Natural Earth II with Shaded Relief, Water and Drainages
+                // url: Cesium.IonResource.fromAssetId(3812),  //Earth at Night
+
+        // Cesium OSM Buildings
+        var tileset = viewer.scene.primitives.add(
+            new Cesium.Cesium3DTileset({
+                url: Cesium.IonResource.fromAssetId(96188),
+        })
+        );
+
+        // // // // Bing Maps Road
+        var layer = viewer.imageryLayers.addImageryProvider(
+            new Cesium.IonImageryProvider({ assetId: 4 })
+        );
+
+        // // // //Bing Maps Aerial with Labels
+        var layer = viewer.imageryLayers.addImageryProvider(
+        new Cesium.IonImageryProvider({ assetId: 3 })
+        );
+
+        // // // //Bing Maps AerialBing Maps Aerial
+        var layer = viewer.imageryLayers.addImageryProvider(
+        new Cesium.IonImageryProvider({ assetId: 2 })
+        );
+
+
+        // var viewer = new Cesium.Viewer("cesiumContainer", {
+        //     baseLayerPicker: false,
+        // });
+        // var imageryLayers = viewer.imageryLayers;
+
+        // var viewModel = {
+        //     layers: [],
+        //     baseLayers: [],
+        //     upLayer: null,
+        //     downLayer: null,
+        //     selectedLayer: null,
+        //     isSelectableLayer: function (layer) {
+        //         return this.baseLayers.indexOf(layer) >= 0;
+        //     },
+        //     raise: function (layer, index) {
+        //         imageryLayers.raise(layer);
+        //         viewModel.upLayer = layer;
+        //         viewModel.downLayer = viewModel.layers[Math.max(0, index - 1)];
+        //         updateLayerList();
+        //         window.setTimeout(function () {
+        //             viewModel.upLayer = viewModel.downLayer = null;
+        //         }, 10);
+        //     },
+        //     lower: function (layer, index) {
+        //         imageryLayers.lower(layer);
+        //         viewModel.upLayer =
+        //             viewModel.layers[
+        //             Math.min(viewModel.layers.length - 1, index + 1)
+        //             ];
+        //         viewModel.downLayer = layer;
+        //         updateLayerList();
+        //         window.setTimeout(function () {
+        //             viewModel.upLayer = viewModel.downLayer = null;
+        //         }, 10);
+        //     },
+        //     canRaise: function (layerIndex) {
+        //         return layerIndex > 0;
+        //     },
+        //     canLower: function (layerIndex) {
+        //         return layerIndex >= 0 && layerIndex < imageryLayers.length - 1;
+        //     },
+        // };
+        // var baseLayers = viewModel.baseLayers;
+
+        // Cesium.knockout.track(viewModel);
+
+        // function setupLayers() {
+        //     // Create all the base layers that this example will support.
+        //     // These base layers aren't really special.  It's possible to have multiple of them
+        //     // enabled at once, just like the other layers, but it doesn't make much sense because
+        //     // all of these layers cover the entire globe and are opaque.
+        //     addBaseLayerOption("Bing Maps Aerial", undefined); // the current base layer
+        //     addBaseLayerOption(
+        //         "Bing Maps Road",
+        //         Cesium.createWorldImagery({
+        //             style: Cesium.IonWorldImageryStyle.ROAD,
+        //         })
+        //     );
+        //     addBaseLayerOption(
+        //         "ArcGIS World Street Maps",
+        //         new Cesium.ArcGisMapServerImageryProvider({
+        //             url:
+        //                 "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
+        //         })
+        //     );
+        //     addBaseLayerOption(
+        //         "OpenStreetMaps",
+        //         new Cesium.OpenStreetMapImageryProvider()
+        //     );
+        //     addBaseLayerOption(
+        //         "Stamen Maps",
+        //         new Cesium.OpenStreetMapImageryProvider({
+        //             url: "https://stamen-tiles.a.ssl.fastly.net/watercolor/",
+        //             fileExtension: "jpg",
+        //             credit:
+        //                 "Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.",
+        //         })
+        //     );
+        //     addBaseLayerOption(
+        //         "Natural Earth II (local)",
+        //         new Cesium.TileMapServiceImageryProvider({
+        //             url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
+        //         })
+        //     );
+        //     addBaseLayerOption(
+        //         "USGS Shaded Relief (via WMTS)",
+        //         new Cesium.WebMapTileServiceImageryProvider({
+        //             url:
+        //                 "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/WMTS",
+        //             layer: "USGSShadedReliefOnly",
+        //             style: "default",
+        //             format: "image/jpeg",
+        //             tileMatrixSetID: "default028mm",
+        //             maximumLevel: 19,
+        //             credit: "U. S. Geological Survey",
+        //         })
+        //     );
+
+        //     // Create the additional layers
+        //     addAdditionalLayerOption(
+        //         "United States GOES Infrared",
+        //         new Cesium.WebMapServiceImageryProvider({
+        //             url:
+        //                 "https://mesonet.agron.iastate.edu/cgi-bin/wms/goes/conus_ir.cgi?",
+        //             layers: "goes_conus_ir",
+        //             credit: "Infrared data courtesy Iowa Environmental Mesonet",
+        //             parameters: {
+        //                 transparent: "true",
+        //                 format: "image/png",
+        //             },
+        //         })
+        //     );
+        //     addAdditionalLayerOption(
+        //         "United States Weather Radar",
+        //         new Cesium.WebMapServiceImageryProvider({
+        //             url:
+        //                 "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi?",
+        //             layers: "nexrad-n0r",
+        //             credit: "Radar data courtesy Iowa Environmental Mesonet",
+        //             parameters: {
+        //                 transparent: "true",
+        //                 format: "image/png",
+        //             },
+        //         })
+        //     );
+        //     //   addAdditionalLayerOption(
+        //     //     "TileMapService Image",
+        //     //     new Cesium.TileMapServiceImageryProvider({
+        //     //       url: "../images/cesium_maptiler/Cesium_Logo_Color",
+        //     //     }),
+        //     //     0.2
+        //     //   );
+        //     //   addAdditionalLayerOption(
+        //     //     "Single Image",
+        //     //     new Cesium.SingleTileImageryProvider({
+        //     //       url: "../images/Cesium_Logo_overlay.png",
+        //     //       rectangle: Cesium.Rectangle.fromDegrees(
+        //     //         -115.0,
+        //     //         38.0,
+        //     //         -107,
+        //     //         39.75
+        //     //       ),
+        //     //     }),
+        //     //     1.0
+        //     //   );
+        //     addAdditionalLayerOption(
+        //         "Grid",
+        //         new Cesium.GridImageryProvider(),
+        //         1.0,
+        //         false
+        //     );
+        //     addAdditionalLayerOption(
+        //         "Tile Coordinates",
+        //         new Cesium.TileCoordinatesImageryProvider(),
+        //         1.0,
+        //         false
+        //     );
+        // }
+
+        // function addBaseLayerOption(name, imageryProvider) {
+        //     var layer;
+        //     if (typeof imageryProvider === "undefined") {
+        //         layer = imageryLayers.get(0);
+        //         viewModel.selectedLayer = layer;
+        //     } else {
+        //         layer = new Cesium.ImageryLayer(imageryProvider);
+        //     }
+
+        //     layer.name = name;
+        //     baseLayers.push(layer);
+        // }
+
+        // function addAdditionalLayerOption(name, imageryProvider, alpha, show) {
+        //     var layer = imageryLayers.addImageryProvider(imageryProvider);
+        //     layer.alpha = Cesium.defaultValue(alpha, 0.5);
+        //     layer.show = Cesium.defaultValue(show, true);
+        //     layer.name = name;
+        //     Cesium.knockout.track(layer, ["alpha", "show", "name"]);
+        // }
+
+        // function updateLayerList() {
+        //     var numLayers = imageryLayers.length;
+        //     viewModel.layers.splice(0, viewModel.layers.length);
+        //     for (var i = numLayers - 1; i >= 0; --i) {
+        //         viewModel.layers.push(imageryLayers.get(i));
+        //     }
+        // }
+
+        // setupLayers();
+        // updateLayerList();
+
+        // //Bind the viewModel to the DOM elements of the UI that call for it.
+        // var toolbar = document.getElementById("toolbar");
+        // Cesium.knockout.applyBindings(viewModel, toolbar);
+
+        // Cesium.knockout
+        //     .getObservable(viewModel, "selectedLayer")
+        //     .subscribe(function (baseLayer) {
+        //         // Handle changes to the drop-down base layer selector.
+        //         var activeLayerIndex = 0;
+        //         var numLayers = viewModel.layers.length;
+        //         for (var i = 0; i < numLayers; ++i) {
+        //             if (viewModel.isSelectableLayer(viewModel.layers[i])) {
+        //                 activeLayerIndex = i;
+        //                 break;
+        //             }
+        //         }
+        //         var activeLayer = viewModel.layers[activeLayerIndex];
+        //         var show = activeLayer.show;
+        //         var alpha = activeLayer.alpha;
+        //         imageryLayers.remove(activeLayer, false);
+        //         imageryLayers.add(baseLayer, numLayers - activeLayerIndex - 1);
+        //         baseLayer.show = show;
+        //         baseLayer.alpha = alpha;
+        //         updateLayerList();
+        //     });
+
+
+    </script>
+
+
+</body>
+
+</html>
